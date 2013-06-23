@@ -3,7 +3,7 @@
 	<link rel="stylesheet" href="/static/articlestyle.css" type="text/css"/>
 	<head>
 		<title>
-			Blog
+			I have, I need
 		</title>
 		
 	</head>
@@ -15,6 +15,7 @@
 
 	 {% for item in items %}
 	<div class = "item">
+		{{item.isNeed}}
 		<div class = "post-title"> 
 		<a href="/{{item.key().id()}}"><h2>{{item.ItemName}}<h2></a></div>
 	 	<img src="http://maps.google.com/maps/api/staticmap?center={{item.ItemLocation}}&zoom=8&size=400x300&sensor=false" style="width: 400px; height: 400px;" /> 

@@ -10,6 +10,10 @@
 		<h1>New Post</h1>
 	<form method = "post">
 		<label>
+			<input type="radio" name="isNeed" value="False">I have:<br>
+			<input type="radio" name="isNeed" value="True">I need:
+		</label>
+		<label>
 			<div>Item</div>
 			<input name= "ItemName" type="" value ="{{ItemName}}">
 		</label>
@@ -17,6 +21,9 @@
 			<div>Description</div>
 			<textarea name = "ItemDescription" >{{ItemDescription}}</textarea>
 			
+
+
+
 		</label>
 			<div>Location</div>
 			<input name= "ItemLocation" type="" value ="{{ItemLocation}}">
