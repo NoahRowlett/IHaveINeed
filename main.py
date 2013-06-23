@@ -48,6 +48,7 @@ class People(db.Model):
     phone = db.IntegerProperty(required = True)
     ImageURL = db.LinkProperty(required = False)
     items = db.StringListProperty()
+    location = db.GeoPtProperty()
 
 class Catagory(db.Model):
     CatagoryName = db.StringProperty(required = True)
@@ -131,7 +132,7 @@ class NewItem(Handler):
                     if need.catagory == catagory:
                         string = "You have a match. His name is %s. His number is %s"
 
-                        
+
                         self.sendmessage(int(str(need.phone)), string)
                         found = True            
         else:
