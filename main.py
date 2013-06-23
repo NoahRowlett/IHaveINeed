@@ -114,25 +114,28 @@ class NewItem(Handler):
         ItemDescription = self.request.get("ItemDescription")
         ItemLocation = self.request.get("ItemLocation")
         canTransfer = "True" == self.request.get("canTransfer")
-        isNeed = "True" == self.request.get("isNeed")
+        isNeed = self.request.get("isNeed")
+        print(isNeed == "True")
         catagory = self.request.get("catagory")
         phone = int(self.request.cookies.get("phone", "error"))
         found = False
         if isNeed:
-            needs = db.GqlQuery("SELECT * FROM Items3 WHERE isNeed == True")
+            needs = db.GqlQuery("SELECT * FROM Items3")
             for need in needs:
-                if need.catagory == catagory:
+                print(need.catagory)
+                if need.isNeed:
+                    if need.catagory == catagory:
                     #tropo
-                    print("tropo")
-                    found = True
-                    
+                        print("tropo")
+                        found = True            
         else:
-            needs = db.GqlQuery("SELECT * FROM Items3 WHERE isNeed == False")
+            needs = db.GqlQuery("SELECT * FROM Items3")
             for need in needs:
-                if need.catagory == catagory:
-                    #tropo
-                    print("tropo")
-                    found = True
+                if need.isNeed:
+                    if need.catagory == catagory:
+                        #tropo
+                        print("tropo")
+                        found = True
         #sort by location
         if not found:
             newitem = Items3(ItemName = ItemName, phone = phone, ItemID = 2343234, ItemLocation = ItemLocation, isNeed = True, isCompleted = False, ItemDescription =ItemDescription, canTransfer = canTransfer)

@@ -17,13 +17,63 @@
 			<div>Item</div>
 			<input name= "ItemName" type="" value ="{{ItemName}}">
 		</label>
+		<select name="catagory">
+			<optgroup label="Food & Water">
+				<option value="food">Food</option>
+				<option value="water">Water</option>
+			</optgroup>
+
+			<optgroup label="Energy">
+				<option value="chargers">Chargers</option>
+				<option value="generators">Generators</option>
+				<option value="pumps">Pumps</option>
+				<option value="electricity">Electricity</option>
+				<option value="gas">Gas</option>
+				<option value="batteries">Batteries</option>
+			</optgroup>
+
+			<optgroup label="Clothing">
+				<option value="baby_clothing">Baby Clothing</option>
+				<option value="child_clothing">Child Clothing</option>
+				<option value="adult_clothing">Adult Clothing</option>
+			</optgroup>
+
+			<optgroup label="Amenities">
+				<option value="shelter">Shelter</option>
+				<option value="bathroom">Bathroom</option>
+				<option value="kitchen">Kitchen</option>
+				<option value="kitchen_supplies">Kitchen Supplies</option>
+			</optgroup>
+
+			<optgroup label="Medical">
+				<option value="first_aid_kits">First Aid Kits</option>
+				<option value="crutches_or_canes">Crutches/Canes</option>
+				<option value="oxygen">Oxygen</option>
+				<option value="first_aid_or_cpr_etc">First Aid/CPR/etc</option>
+				<option value="otc_meds">OTC Meds</option>
+			</optgroup>
+
+			<optgroup label="Services">
+				<option value="muscle">Muscle</option>
+				<option value="mental_support">Mental Support</option>
+				<option value="childcare">Childcare</option>
+				<option value="transportation">Transportation</option>
+				<option value="laundry">Laundry</option>
+				<option value="toolwork">Toolwork</option>
+			</optgroup>
+
+			<optgroup label="Supplies">
+				<option value="pet_supplies">Pet Supplies</option>
+				<option value="baby_supplies">Baby Supplies</option>
+				<option value="toilitries">Toilitries</option>
+				<option value="femenine_protection">Femenine Protection</option>
+				<option value="cleaning_supplies">Cleaning Supplies</option>
+			</optgroup>
+			<option value="other">Other...</option>
+		</select>
 		<label>
 			<div>Description</div>
 			<textarea name = "ItemDescription" >{{ItemDescription}}</textarea>
-			
-
-
-
 		</label>
 			<div>Location</div>
 			<input name= "ItemLocation" type="" value ="{{ItemLocation}}">
