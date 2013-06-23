@@ -1,27 +1,21 @@
-<!DOCTYPE html>
-<html>
-	<link rel="stylesheet" href="/static/articlestyle.css" type="text/css"/>
-	<head>
-		<title>
-			I have, I need
-		</title>
-		
-	</head>
-	<body>
-		<h1>items</h1>
-		test
-		
-	</body>
+{% extends "base.html" %}
 
-	 {% for item in items %}
+
+{% block content %}
+<div>
+{% for item in items %}
 	<div class = "item">
-		{{item.isNeed}}
 		<div class = "post-title"> 
 		<a href="/{{item.key().id()}}"><h2>{{item.ItemName}}<h2></a></div>
 	 	<img src="http://maps.google.com/maps/api/staticmap?center={{item.ItemLocation}}&zoom=8&size=400x300&sensor=false" style="width: 400px; height: 400px;" /> 
 		<pre class ="description"> {{item.ItemDescription}}</pre>
+		
+		<hr>
 	</div>
 	{% endfor %}
- 
-</html>
+</div>
 
+{% endblock content %}
+
+{% block scripts %}
+{% endblock scripts %}
