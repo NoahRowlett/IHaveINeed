@@ -19,8 +19,11 @@ import webapp2
 import jinja2
 import time
 import unicodedata
+import urllib
 import re
+import urllib2
 import string
+from geopy import geocoders
 from google.appengine.ext import db
 
 
@@ -46,6 +49,7 @@ class People(db.Model):
     phone = db.IntegerProperty(required = True)
     ImageURL = db.LinkProperty(required = False)
     items = db.StringListProperty()
+    location = db.GeoPtProperty()
 
 class Catagory(db.Model):
     CatagoryName = db.StringProperty(required = True)
@@ -84,7 +88,7 @@ class MainPage(Handler):
         self.render_mainpage()
 
         # time.sleep(1)
-        # username = self.request.cookies.get("username", "error")
+        # username = self.request.cookies.get("username", "error")http://hackchicagoihaveineed.appspot.com/
         # if self.confirm_cookies():
         #     self.render_mainpage()
         # else:
@@ -108,16 +112,19 @@ class NewItem(Handler):
         self.render_newpost()
 
     def post(self):
-
-
         ItemName = self.request.get("ItemName")
         ItemDescription = self.request.get("ItemDescription")
         ItemLocation = self.request.get("ItemLocation")
+        g = geocoders.GoogleV3()
+        place, (lat, lng) = g.geocode(ItemLocation)
+
         canTransfer = self.request.get("canTransfer")
         canTransfer = canTransfer == "True"
         isNeed = self.request.get("isNeed")
         isNeed = isNeed == "True"
   
+
+
         catagory = self.request.get("catagory")
         print(catagory)
         phone = int(self.request.cookies.get("phone", "error"))
@@ -129,8 +136,10 @@ class NewItem(Handler):
                 print(need.catagory)
                 if need.isNeed:
                     if need.catagory == catagory:
-                    #tropo
-                        print("tropo")
+                        string = "You have a match. His name is %s. His number is %s"
+
+
+                        self.sendmessage(int(str(need.phone)), string)
                         found = True            
         else:
             print("there")
@@ -138,7 +147,7 @@ class NewItem(Handler):
             for need in needs:
                 if need.isNeed:
                     if need.catagory == catagory:
-                        #tropo
+                        self.sendmessage(int(str(need.phone)), "You have a match")
                         print("tropo")
                         found = True
         #sort by location
@@ -152,6 +161,15 @@ class NewItem(Handler):
             newitem.put()
         self.redirect("/")
 
+    def sendmessage(self,phone, string):
+        string = urllib.quote_plus(string)
+        sendurl="https://api.tropo.com/1.0/sessions?action=create&token=23f4f85266b1644dba28170e130e1af478e4792e6e198c0292abd66d05fbc0cf5126442f4785049c150d04ae&myNumbers=" 
+        sendurl= sendurl + "1" + str(phone)
+        sendurl = sendurl + "&myText=" 
+        sendurl = sendurl + string
+        sendurl = sendurl + "&myURL=http://hackchicagoihaveineed.appspot.com/"
+        urllib2.urlopen(sendurl).read()
+
 
 class LoginItem(Handler):
     def get(self, phone_error=""):
@@ -159,10 +177,11 @@ class LoginItem(Handler):
 
     def post(self, phone_error=""):
         phone = self.request.get('phone')
-        phone_error = self.confirm_phone(self.request.get(phone))
+        phone_error = self.confirm_phone(self.request.get('phone'))
         phone = re.sub("\D", "", phone)
         if phone_error == "":
-            if self.confirm_verify_phone(phone):
+            phone_error = self.confirm_verify_phone(phone)
+            if phone_error == "":
                 self.setcookie(phone)
                 self.redirect("/")
         self.render("login.html", phone_error = phone_error)
@@ -185,12 +204,16 @@ class LoginItem(Handler):
         return True
 
     def confirm_verify_phone(self, phone):
+        name_error = ""
         users = db.GqlQuery("SELECT * FROM People")
         for user in users:
-            print(user)
             if str(db.PhoneNumber(phone)) == str(user.phone):
-                return True
-        return False
+                name_error = ""
+        return name_error
+    def setcookie(self,phone):
+        cookie = "phone=" + phone
+        cookie = unicodedata.normalize('NFKD', cookie).encode('ascii','ignore')
+        self.response.headers.add_header('set-cookie', cookie)
 
 
 
@@ -205,8 +228,6 @@ class SignUp(Handler):
         phone = self.request.get('phone')
         phone_error = self.confirm_phone(self.request.get(phone))
 
-
-
         phone = re.sub("\D", "", phone)
         print(phone)
         phone_error = self.confirm_phone(self.request.get('phone')) #####################
@@ -216,9 +237,6 @@ class SignUp(Handler):
             self.success(self.request.get('username'), phone)
         else:
             self.render("signup.html", username = username, name_error = name_error, phone = phone, phone_error = phone_error)
-
-
-
 
     def success(self, username, phone):
         self.setcookie(phone)
@@ -242,9 +260,6 @@ class SignUp(Handler):
             return False
         return True
 
-#https://api.tropo.com/1.0/sessions?action=create&token=23f4f85266b1644dba28170e130e1af478e4792e6e198c0292abd66d05fbc0cf5126442f4785049c150d04ae&myNumbers=14145208506&myText=Hello+World+From+Chicago&myURL=http://www.tropo.com
-
-
 
     def confirm_verify_username(self, name, phone):
         name_error = ""
@@ -259,7 +274,6 @@ class SignUp(Handler):
         phone_error = "That is not a valid number"
         if self.check_value(phone, "phone"):
             phone_error = ""
-        print(phone_error)
         return phone_error
         
 
