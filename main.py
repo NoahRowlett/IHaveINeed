@@ -101,8 +101,7 @@ class MainPage(Handler):
 
 class NewItem(Handler):
     def render_newpost(self , ItemName ="", ItemDescription = "", ItemLocation = "41.896716, -87.643280", error = ""):
-        ##add have or need 
-
+        #get location
         self.render("newform.html", ItemName= ItemName, ItemDescription = ItemDescription, ItemLocation = ItemLocation, error = error)
 
     def get(self):
@@ -116,26 +115,28 @@ class NewItem(Handler):
         ItemLocation = self.request.get("ItemLocation")
         canTransfer = "True" == self.request.get("canTransfer")
         isNeed = "True" == self.request.get("isNeed")
-        
-        
-        ##have or ned = "True" == self.request.get("have or ned")
-        #result= False
-        #if haveorneed:
-            #run through code and see if there is a matcnh
-        #else
-        #if result:
+        catagory = self.request.get("catagory")
         phone = int(self.request.cookies.get("phone", "error"))
-
-        newitem = Items3(ItemName = ItemName, phone = phone, ItemID = 2343234, ItemLocation = ItemLocation, isNeed = True, isCompleted = False, ItemDescription =ItemDescription, canTransfer = canTransfer)
-        newitem.put()
-        x = str(newitem.key().id())
-        #else:
-        #use tropo api to notify other person
-
-
-
-
-
+        found = False
+        if isNeed:
+            needs = db.GqlQuery("SELECT * FROM Items3 WHERE isNeed == True")
+            for need in needs:
+                if need.catagory == catagory:
+                    #tropo
+                    print("tropo")
+                    found = True
+                    
+        else:
+            needs = db.GqlQuery("SELECT * FROM Items3 WHERE isNeed == False")
+            for need in needs:
+                if need.catagory == catagory:
+                    #tropo
+                    print("tropo")
+                    found = True
+        #sort by location
+        if not found:
+            newitem = Items3(ItemName = ItemName, phone = phone, ItemID = 2343234, ItemLocation = ItemLocation, isNeed = True, isCompleted = False, ItemDescription =ItemDescription, canTransfer = canTransfer)
+            newitem.put()
         self.redirect("/")
         # else:
         #     error = "incomplete"
@@ -185,14 +186,7 @@ class SignUp(Handler):
 
 
     def success(self, username, phone):
-        #TO DO: hash cookie and login
-        # hashedlogin = self.make_hash(username, password, email)
-        # hashedlogin_db = hashedlogin.split(",")
-        # username = unicodedata.normalize('NFKD', hashedlogin_db[0]).encode('ascii','ignore')
-        # password = unicodedata.normalize('NFKD', hashedlogin_db[1]).encode('ascii','ignore')
-        # salt = unicodedata.normalize('NFKD', hashedlogin_db[3]).encode('ascii','ignore')
         self.setcookie(phone)
-
         newuser = People(name = username, phone = int(phone))
         newuser.put()
         self.redirect("/")
