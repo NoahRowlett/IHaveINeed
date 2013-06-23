@@ -76,12 +76,6 @@ class Handler(webapp2.RequestHandler):
         self.write(self.render_str(template, **kw))
 
 
-class HomePage(Handler):
-    def render_mainpage(self):
-        self.render("index.html")
-    def get(self):
-        self.render_mainpage()
-
 class MainPage(Handler):
     def render_mainpage(self):
 
@@ -287,5 +281,5 @@ class SignUp(Handler):
         
 
 
-app = webapp2.WSGIApplication([('/', HomePage),('/home', MainPage),('/new/?', NewItem),('/login/?', LoginItem),('/signup/?', SignUp)], debug=True)
+app = webapp2.WSGIApplication([('/home', MainPage),('/new/?', NewItem),('/login/?', LoginItem),('/signup/?', SignUp)], debug=True)
 
