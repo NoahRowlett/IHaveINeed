@@ -104,7 +104,7 @@ class MainPage(Handler):
 
 
 class NewItem(Handler):
-    def render_newpost(self , ItemName ="", ItemDescription = "", ItemLocation = "41.896716, -87.643280", error = ""):
+    def render_newpost(self , ItemName ="", ItemDescription = "", ItemLocation = "", error = ""):
         #get location
         self.render("newform.html", ItemName= ItemName, ItemDescription = ItemDescription, ItemLocation = ItemLocation, error = error)
 
@@ -115,8 +115,8 @@ class NewItem(Handler):
         ItemName = self.request.get("ItemName")
         ItemDescription = self.request.get("ItemDescription")
         ItemLocation = self.request.get("ItemLocation")
-        g = geocoders.GoogleV3()
-        place, (lat, lng) = g.geocode(ItemLocation)
+        # g = geocoders.GoogleV3()
+        # place, (lat, lng) = g.geocode(ItemLocation)
 
         canTransfer = self.request.get("canTransfer")
         canTransfer = canTransfer == "True"
@@ -136,10 +136,10 @@ class NewItem(Handler):
                 print(need.catagory)
                 if need.isNeed:
                     if need.catagory == catagory:
-                        string = "You have a match. His name is %s. His number is %s"
-
-
+                        string = "Someone needs what you have. His name is %s. His number is %s"
                         self.sendmessage(int(str(need.phone)), string)
+                        string = "Someone has what you need. His name is %s. His number is %s"
+                        self.sendmessage(phone, string)
                         found = True            
         else:
             print("there")
@@ -147,8 +147,11 @@ class NewItem(Handler):
             for need in needs:
                 if need.isNeed:
                     if need.catagory == catagory:
-                        self.sendmessage(int(str(need.phone)), "You have a match")
-                        print("tropo")
+                        string = "Someone has what you need. His name is %s. His number is %s"
+                        self.sendmessage(int(str(need.phone)), string)
+                        string = "Someone needs what you have. His name is %s. His number is %s"
+                        self.sendmessage(phone, string)
+                        
                         found = True
         #sort by location
         if found:
@@ -159,7 +162,7 @@ class NewItem(Handler):
         if not found:
             newitem = Items4(ItemName = ItemName, catagory = catagory, phone = phone, ItemLocation = ItemLocation, isNeed = isNeed, isCompleted = False, ItemDescription =ItemDescription, canTransfer = canTransfer)
             newitem.put()
-        self.redirect("/")
+        self.redirect("/home")
 
     def sendmessage(self,phone, string):
         string = urllib.quote_plus(string)
@@ -183,7 +186,7 @@ class LoginItem(Handler):
             phone_error = self.confirm_verify_phone(phone)
             if phone_error == "":
                 self.setcookie(phone)
-                self.redirect("/")
+                self.redirect("/home")
         self.render("login.html", phone_error = phone_error)
 
     def confirm_phone(self, phone):
@@ -242,7 +245,7 @@ class SignUp(Handler):
         self.setcookie(phone)
         newuser = People(name = username, phone = int(phone))
         newuser.put()
-        self.redirect("/")
+        self.redirect("/home")
 
     def setcookie(self,phone):
         cookie = "phone=" + phone
@@ -278,5 +281,5 @@ class SignUp(Handler):
         
 
 
-app = webapp2.WSGIApplication([('/', MainPage),('/new/?', NewItem),('/login/?', LoginItem),('/signup/?', SignUp)], debug=True)
+app = webapp2.WSGIApplication([('/home', MainPage),('/new/?', NewItem),('/login/?', LoginItem),('/signup/?', SignUp)], debug=True)
 
