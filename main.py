@@ -159,10 +159,12 @@ class LoginItem(Handler):
 
     def post(self, phone_error=""):
         phone = self.request.get('phone')
-        phone_error = self.confirm_phone(self.request.get(phone))
+        phone_error = self.confirm_phone(self.request.get('phone'))
         phone = re.sub("\D", "", phone)
+        print(phone)
         if phone_error == "":
-            if self.confirm_verify_phone(phone):
+            phone_error = self.confirm_verify_phone(phone)
+            if phone_error == "":
                 self.setcookie(phone)
                 self.redirect("/")
         self.render("login.html", phone_error = phone_error)
@@ -185,12 +187,16 @@ class LoginItem(Handler):
         return True
 
     def confirm_verify_phone(self, phone):
+        name_error = ""
         users = db.GqlQuery("SELECT * FROM People")
         for user in users:
-            print(user)
             if str(db.PhoneNumber(phone)) == str(user.phone):
-                return True
-        return False
+                name_error = ""
+        return name_error
+    def setcookie(self,phone):
+        cookie = "phone=" + phone
+        cookie = unicodedata.normalize('NFKD', cookie).encode('ascii','ignore')
+        self.response.headers.add_header('set-cookie', cookie)
 
 
 
@@ -259,7 +265,6 @@ class SignUp(Handler):
         phone_error = "That is not a valid number"
         if self.check_value(phone, "phone"):
             phone_error = ""
-        print(phone_error)
         return phone_error
         
 
