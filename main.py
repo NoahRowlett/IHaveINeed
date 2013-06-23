@@ -126,7 +126,7 @@ class NewItem(Handler):
         #if result:
         phone = int(self.request.cookies.get("phone", "error"))
 
-        newitem = Items3(ItemName = ItemName, phone = phone, ItemID = 2343234, UserID = 33244334, ItemLocation = ItemLocation, isNeed = True, isCompleted = False, ItemDescription =ItemDescription, canTransfer = canTransfer)
+        newitem = Items3(ItemName = ItemName, phone = phone, ItemID = 2343234, ItemLocation = ItemLocation, isNeed = True, isCompleted = False, ItemDescription =ItemDescription, canTransfer = canTransfer)
         newitem.put()
         x = str(newitem.key().id())
         #else:
