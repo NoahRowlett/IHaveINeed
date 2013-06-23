@@ -19,7 +19,9 @@ import webapp2
 import jinja2
 import time
 import unicodedata
+import urllib
 import re
+import urllib2
 import string
 from google.appengine.ext import db
 
@@ -84,7 +86,7 @@ class MainPage(Handler):
         self.render_mainpage()
 
         # time.sleep(1)
-        # username = self.request.cookies.get("username", "error")
+        # username = self.request.cookies.get("username", "error")http://hackchicagoihaveineed.appspot.com/
         # if self.confirm_cookies():
         #     self.render_mainpage()
         # else:
@@ -108,8 +110,6 @@ class NewItem(Handler):
         self.render_newpost()
 
     def post(self):
-
-
         ItemName = self.request.get("ItemName")
         ItemDescription = self.request.get("ItemDescription")
         ItemLocation = self.request.get("ItemLocation")
@@ -129,8 +129,10 @@ class NewItem(Handler):
                 print(need.catagory)
                 if need.isNeed:
                     if need.catagory == catagory:
-                    #tropo
-                        print("tropo")
+                        string = "You have a match. His name is %s. His number is %s"
+
+                        
+                        self.sendmessage(int(str(need.phone)), string)
                         found = True            
         else:
             print("there")
@@ -138,7 +140,7 @@ class NewItem(Handler):
             for need in needs:
                 if need.isNeed:
                     if need.catagory == catagory:
-                        #tropo
+                        self.sendmessage(int(str(need.phone)), "You have a match")
                         print("tropo")
                         found = True
         #sort by location
@@ -152,6 +154,15 @@ class NewItem(Handler):
             newitem.put()
         self.redirect("/")
 
+    def sendmessage(self,phone, string):
+        string = urllib.quote_plus(string)
+        sendurl="https://api.tropo.com/1.0/sessions?action=create&token=23f4f85266b1644dba28170e130e1af478e4792e6e198c0292abd66d05fbc0cf5126442f4785049c150d04ae&myNumbers=" 
+        sendurl= sendurl + "1" + str(phone)
+        sendurl = sendurl + "&myText=" 
+        sendurl = sendurl + string
+        sendurl = sendurl + "&myURL=http://hackchicagoihaveineed.appspot.com/"
+        urllib2.urlopen(sendurl).read()
+
 
 class LoginItem(Handler):
     def get(self, phone_error=""):
@@ -161,7 +172,6 @@ class LoginItem(Handler):
         phone = self.request.get('phone')
         phone_error = self.confirm_phone(self.request.get('phone'))
         phone = re.sub("\D", "", phone)
-        print(phone)
         if phone_error == "":
             phone_error = self.confirm_verify_phone(phone)
             if phone_error == "":
@@ -211,8 +221,6 @@ class SignUp(Handler):
         phone = self.request.get('phone')
         phone_error = self.confirm_phone(self.request.get(phone))
 
-
-
         phone = re.sub("\D", "", phone)
         print(phone)
         phone_error = self.confirm_phone(self.request.get('phone')) #####################
@@ -222,9 +230,6 @@ class SignUp(Handler):
             self.success(self.request.get('username'), phone)
         else:
             self.render("signup.html", username = username, name_error = name_error, phone = phone, phone_error = phone_error)
-
-
-
 
     def success(self, username, phone):
         self.setcookie(phone)
@@ -247,9 +252,6 @@ class SignUp(Handler):
         except :
             return False
         return True
-
-#https://api.tropo.com/1.0/sessions?action=create&token=23f4f85266b1644dba28170e130e1af478e4792e6e198c0292abd66d05fbc0cf5126442f4785049c150d04ae&myNumbers=14145208506&myText=Hello+World+From+Chicago&myURL=http://www.tropo.com
-
 
 
     def confirm_verify_username(self, name, phone):
