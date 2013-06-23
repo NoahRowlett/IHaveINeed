@@ -23,6 +23,7 @@ import urllib
 import re
 import urllib2
 import string
+from geopy import geocoders
 from google.appengine.ext import db
 
 
@@ -114,11 +115,16 @@ class NewItem(Handler):
         ItemName = self.request.get("ItemName")
         ItemDescription = self.request.get("ItemDescription")
         ItemLocation = self.request.get("ItemLocation")
+        g = geocoders.GoogleV3()
+        place, (lat, lng) = g.geocode(ItemLocation)
+
         canTransfer = self.request.get("canTransfer")
         canTransfer = canTransfer == "True"
         isNeed = self.request.get("isNeed")
         isNeed = isNeed == "True"
   
+
+
         catagory = self.request.get("catagory")
         print(catagory)
         phone = int(self.request.cookies.get("phone", "error"))
