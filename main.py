@@ -29,7 +29,7 @@ template_dir = os.path.join(os.path.dirname(__file__), 'templates/')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape=True)
 
 
-class Items3(db.Model):
+class Items4(db.Model):
     ItemName = db.StringProperty(required = True)
     phone = db.IntegerProperty(required = True)
     isNeed = db.BooleanProperty(required = True)
@@ -75,10 +75,10 @@ class Handler(webapp2.RequestHandler):
 class MainPage(Handler):
     def render_mainpage(self):
 
-        Items3 = db.GqlQuery("SELECT * FROM Items3")
+        Items4 = db.GqlQuery("SELECT * FROM Items4")
         names = db.GqlQuery("SELECT * FROM People")
         catagory = db.GqlQuery("SELECT * FROM Catagory")
-        self.render("main.html", Items3 = Items3, names = names)
+        self.render("main.html", Items4 = Items4, names = names)
 
     def get(self):
         self.render_mainpage()
@@ -113,14 +113,18 @@ class NewItem(Handler):
         ItemName = self.request.get("ItemName")
         ItemDescription = self.request.get("ItemDescription")
         ItemLocation = self.request.get("ItemLocation")
-        canTransfer = "True" == self.request.get("canTransfer")
+        canTransfer = self.request.get("canTransfer")
+        canTransfer = canTransfer == "True"
         isNeed = self.request.get("isNeed")
-        print(isNeed == "True")
+        isNeed = isNeed == "True"
+  
         catagory = self.request.get("catagory")
+        print(catagory)
         phone = int(self.request.cookies.get("phone", "error"))
         found = False
         if isNeed:
-            needs = db.GqlQuery("SELECT * FROM Items3")
+            print("here")
+            needs = db.GqlQuery("SELECT * FROM Items4")
             for need in needs:
                 print(need.catagory)
                 if need.isNeed:
@@ -129,7 +133,8 @@ class NewItem(Handler):
                         print("tropo")
                         found = True            
         else:
-            needs = db.GqlQuery("SELECT * FROM Items3")
+            print("there")
+            needs = db.GqlQuery("SELECT * FROM Items4")
             for need in needs:
                 if need.isNeed:
                     if need.catagory == catagory:
@@ -137,21 +142,26 @@ class NewItem(Handler):
                         print("tropo")
                         found = True
         #sort by location
+        if found:
+
+            ##matches page
+            print("THERE WERE MATCHES")
+        print("nowhere")
         if not found:
-            newitem = Items3(ItemName = ItemName, phone = phone, ItemID = 2343234, ItemLocation = ItemLocation, isNeed = True, isCompleted = False, ItemDescription =ItemDescription, canTransfer = canTransfer)
+            newitem = Items4(ItemName = ItemName, catagory = catagory, phone = phone, ItemLocation = ItemLocation, isNeed = isNeed, isCompleted = False, ItemDescription =ItemDescription, canTransfer = canTransfer)
             newitem.put()
         self.redirect("/")
-        # else:
-        #     error = "incomplete"
-        #     self.render_newpost(ItemName, ItemDescription, Location, error)
 
 
 class LoginItem(Handler):
-    def render_newpost(self , ItemName ="", ItemDescription = "", ItemLocation = "41.896716, -87.643280", error = ""):
-        self.render("newform.html", ItemName= ItemName, ItemDescription = ItemDescription, ItemLocation = ItemLocation, error = error)
+    def render_newpost(self):
+        self.render("login.html")
 
     def get(self):
         self.render_newpost()
+
+    def post(self):
+
 
 
 
@@ -209,6 +219,8 @@ class SignUp(Handler):
         except :
             return False
         return True
+
+#https://api.tropo.com/1.0/sessions?action=create&token=23f4f85266b1644dba28170e130e1af478e4792e6e198c0292abd66d05fbc0cf5126442f4785049c150d04ae&myNumbers=14145208506&myText=Hello+World+From+Chicago&myURL=http://www.tropo.com
 
 
 
