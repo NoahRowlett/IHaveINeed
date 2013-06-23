@@ -154,21 +154,43 @@ class NewItem(Handler):
 
 
 class LoginItem(Handler):
-    def render_newpost(self):
-        self.render("login.html")
+    def get(self, phone_error=""):
+        self.render("login.html",phone_error = phone_error)
 
-    def get(self):
-        self.render_newpost()
+    def post(self, phone_error=""):
+        phone = self.request.get('phone')
+        phone_error = self.confirm_phone(self.request.get(phone))
+        phone = re.sub("\D", "", phone)
+        if phone_error == "":
+            if self.confirm_verify_phone(phone):
+                self.setcookie(phone)
+                self.redirect("/")
+        self.render("login.html", phone_error = phone_error)
 
-    def post(self):
+    def confirm_phone(self, phone):
+        phone_error = "That is not a valid number"
+        if self.check_value(phone, "phone"):
+            phone_error = ""
+        return phone_error
 
+    def check_value(self, value,kind):
+        expressions = {"email":"^[\S]+@[\S]+\.[\S]+$","password":"^.{3,20}$","username":"^[a-zA-Z0-9_-]{3,20}$", "phone":"^\D?(\d{3})\D?\D?(\d{3})\D?(\d{4})$" }
+        if kind =="email": 
+            if value =="":
+                return True
+        try:
+            (re.findall(expressions[kind], value)[0] == value)
+        except :
+            return False
+        return True
 
-
-
-
-
-
-
+    def confirm_verify_phone(self, phone):
+        users = db.GqlQuery("SELECT * FROM People")
+        for user in users:
+            print(user)
+            if str(db.PhoneNumber(phone)) == str(user.phone):
+                return True
+        return False
 
 
 
