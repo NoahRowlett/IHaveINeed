@@ -32,7 +32,7 @@ template_dir = os.path.join(os.path.dirname(__file__), 'templates/')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape=True)
 
 
-class Items4(db.Model):
+class Items5(db.Model):
     ItemName = db.StringProperty(required = True)
     phone = db.IntegerProperty(required = True)
     isNeed = db.BooleanProperty(required = True)
@@ -42,6 +42,7 @@ class Items4(db.Model):
     ImageURL = db.LinkProperty(required = False)
     canTransfer = db.BooleanProperty(required = True)
     catagory = db.StringProperty()
+    location = db.GeoPtProperty()
 
 
 class People(db.Model):
@@ -49,7 +50,7 @@ class People(db.Model):
     phone = db.IntegerProperty(required = True)
     ImageURL = db.LinkProperty(required = False)
     items = db.StringListProperty()
-    location = db.GeoPtProperty()
+    
 
 class Catagory(db.Model):
     CatagoryName = db.StringProperty(required = True)
@@ -79,10 +80,10 @@ class Handler(webapp2.RequestHandler):
 class MainPage(Handler):
     def render_mainpage(self):
 
-        Items4 = db.GqlQuery("SELECT * FROM Items4")
+        Items5 = db.GqlQuery("SELECT * FROM Items5")
         names = db.GqlQuery("SELECT * FROM People")
         catagory = db.GqlQuery("SELECT * FROM Catagory")
-        self.render("main.html", Items4 = Items4, names = names)
+        self.render("main.html", Items5 = Items5, names = names)
 
     def get(self):
         self.render_mainpage()
@@ -115,54 +116,98 @@ class NewItem(Handler):
         ItemName = self.request.get("ItemName")
         ItemDescription = self.request.get("ItemDescription")
         ItemLocation = self.request.get("ItemLocation")
-        # g = geocoders.GoogleV3()
-        # place, (lat, lng) = g.geocode(ItemLocation)
-
+        
         canTransfer = self.request.get("canTransfer")
         canTransfer = canTransfer == "True"
         isNeed = self.request.get("isNeed")
         isNeed = isNeed == "True"
   
 
-
         catagory = self.request.get("catagory")
         print(catagory)
         phone = int(self.request.cookies.get("phone", "error"))
         found = False
-        if isNeed:
-            print("here")
-            needs = db.GqlQuery("SELECT * FROM Items4")
-            for need in needs:
-                print(need.catagory)
-                if need.isNeed:
-                    if need.catagory == catagory:
-                        string = "Someone needs what you have. His name is %s. His number is %s"
-                        self.sendmessage(int(str(need.phone)), string)
-                        string = "Someone has what you need. His name is %s. His number is %s"
-                        self.sendmessage(phone, string)
-                        found = True            
-        else:
-            print("there")
-            needs = db.GqlQuery("SELECT * FROM Items4")
-            for need in needs:
-                if need.isNeed:
-                    if need.catagory == catagory:
-                        string = "Someone has what you need. His name is %s. His number is %s"
-                        self.sendmessage(int(str(need.phone)), string)
-                        string = "Someone needs what you have. His name is %s. His number is %s"
-                        self.sendmessage(phone, string)
-                        
-                        found = True
+        matches = self.findMatches(isNeed)
+
+        # if isNeed:
+        #     print("here")
+        #     needs = db.GqlQuery("SELECT * FROM Items5")
+        #     for need in needs:
+        #         print(need.catagory)
+        #         if need.isNeed:
+        #             if need.catagory == catagory:
+        #                 if not need.isCompleted:    
+        #                     newitem = Items5(ItemName = need.ItemName, catagory = need.catagory, phone = need.phone, location = need.location, isNeed = need.isNeed, isCompleted = need.isCompleted, ItemDescription = need.ItemDescription, canTransfer = need.canTransfer)
+        #                     matches[need.ItemName] = newitem
+        #                     print(matches)
+
+                            
+
+
+
+
+        #                     string = "1 Someone needs what you have. His name is %s. His number is %s"
+        #                     #self.sendmessage(int(str(need.phone)), string)
+        #                     print((string)% (need.ItemName, need.phone))
+        #                     string = "2 Someone has what you need. His name is %s. His number is %s"
+        #                     #self.sendmessage(int(phone), string)
+        #                     print((string)% (need.ItemName, int(phone)))
+        #                     found = True            
+        # else:
+        #     print("there")
+        #     needs = db.GqlQuery("SELECT * FROM Items5")
+        #     for need in needs:
+        #         if need.isNeed:
+        #             print(need.phone)
+        #             if need.catagory == catagory:
+        #                 if not need.isCompleted:
+        #                     newitem = Items5(ItemName = need.ItemName, catagory = need.catagory, phone = need.phone, location = need.location, isNeed = need.isNeed, isCompleted = need.isCompleted, ItemDescription = need.ItemDescription, canTransfer = need.canTransfer)
+        #                     matches[need.ItemName] = newitem
+        #                     print(matches)
+
+
+        #                     string = "3 Someone has what you need. His name is %s. His number is %s" 
+        #                     print((string)% (need.ItemName, need.phone))
+                           
+        #                     #self.sendmessage(int(str(need.phone)), string)% (need.ItemName, need.phone)
+        #                     string = "4 Someone needs what you have. His name is %s. His number is %s"
+        #                     #self.sendmessage(int(phone), string)
+        #                     print((string)% (need.ItemName, int(phone)))
+        #                     found = True
         #sort by location
         if found:
 
             ##matches page
             print("THERE WERE MATCHES")
         print("nowhere")
-        if not found:
-            newitem = Items4(ItemName = ItemName, catagory = catagory, phone = phone, ItemLocation = ItemLocation, isNeed = isNeed, isCompleted = False, ItemDescription =ItemDescription, canTransfer = canTransfer)
+        if found:
+            newitem = Items5(ItemName = ItemName, catagory = catagory, phone = phone, location = ItemLocation, isNeed = isNeed, isCompleted = False, ItemDescription =ItemDescription, canTransfer = canTransfer)
             newitem.put()
-        self.redirect("/home")
+        self.redirect("/")
+
+
+    def findMatches(isNeed):
+        needs = db.GqlQuery("SELECT * FROM Items5")
+        matchNeeds = {}
+        matchHaves = {}
+        for need in needs:
+            if need.catagory == catagory:
+                if not need.isCompleted:    
+                    newitem = Items5(ItemName = need.ItemName, catagory = need.catagory, phone = need.phone, location = need.location, isNeed = need.isNeed, isCompleted = need.isCompleted, ItemDescription = need.ItemDescription, canTransfer = need.canTransfer)
+                    if need.isNeed:
+                        matchNeeds[need.ItemName] = newitem
+                    else:
+                        matchHaves[need.ItemName] = newitem
+        if isNeed:
+            return matchNeeds
+        else:
+            return matchHaves
+
+    
+               
+
+
+
 
     def sendmessage(self,phone, string):
         string = urllib.quote_plus(string)
@@ -186,7 +231,7 @@ class LoginItem(Handler):
             phone_error = self.confirm_verify_phone(phone)
             if phone_error == "":
                 self.setcookie(phone)
-                self.redirect("/home")
+                self.redirect("/")
         self.render("login.html", phone_error = phone_error)
 
     def confirm_phone(self, phone):
@@ -222,7 +267,6 @@ class LoginItem(Handler):
 
 
 
-
 class SignUp(Handler):
     def get(self,username="",name_error="",phone="",phone_error=""):
         self.render("signup.html", username = username, name_error = name_error, phone = phone, phone_error = phone_error)
@@ -245,7 +289,7 @@ class SignUp(Handler):
         self.setcookie(phone)
         newuser = People(name = username, phone = int(phone))
         newuser.put()
-        self.redirect("/home")
+        self.redirect("/")
 
     def setcookie(self,phone):
         cookie = "phone=" + phone
@@ -281,5 +325,5 @@ class SignUp(Handler):
         
 
 
-app = webapp2.WSGIApplication([('/home', MainPage),('/new/?', NewItem),('/login/?', LoginItem),('/signup/?', SignUp)], debug=True)
+app = webapp2.WSGIApplication([('/', MainPage),('/new/?', NewItem),('/login/?', LoginItem),('/signup/?', SignUp)], debug=True)
 
