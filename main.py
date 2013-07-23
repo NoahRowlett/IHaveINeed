@@ -246,6 +246,7 @@ class NewItem(Handler):
 
 class LoginItem(Handler):
     def get(self, phone_error=""):
+
         session = get_current_session()
         self.render("login.html",phone_error = phone_error)
 
