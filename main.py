@@ -27,18 +27,21 @@ import urllib2
 import string
 import packages
 import geopy
+#import appengine_utilities
 #import pycrypto
+from gaesessions import SessionMiddleware
+from gaesessions import get_current_session
+
+
 
 # from geopy import geocoders
 from google.appengine.ext import db
 
-
-
+print("here")
+print(os.urandom(64).encode('hex'))
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates/')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape=True)
-
-people = {}
 
 class Inventory(db.Model):
     ItemName = db.StringProperty(required = True)
@@ -55,6 +58,7 @@ class Inventory(db.Model):
 class People(db.Model):
     name = db.StringProperty(required = True)
     phone = db.IntegerProperty(required = True)
+    userhash = db.StringProperty(required = True)
     ImageURL = db.LinkProperty(required = False)
     items = db.StringListProperty()
     
@@ -112,8 +116,8 @@ class Handler(webapp2.RequestHandler):
         return name_error
 
     def setcookie(self, encryption):
-        cookie = unicodedata.normalize('NFKD',"encryption=" + encryption).encode('ascii','ignore')
-        #cookie = unicodedata.normalize('NFKD', cookie).encode('ascii','ignore')
+        cookie = "encryption=" + encryption
+        cookie = unicodedata.normalize('NFKD', cookie).encode('ascii','ignore')
         self.response.headers.add_header('set-cookie', cookie)
 
     def validateUser(self):
@@ -151,7 +155,7 @@ class Handler(webapp2.RequestHandler):
     def make_hash(self, username, phone, password):
         salt = hashlib.sha256(username).hexdigest()
         hash = hashlib.sha256(username + str(phone) + password + salt).hexdigest()
-        return hash
+        return str(hash)
     
     def cleanPhone(self, phone):
         return int(re.sub("\D", "", phone))
@@ -185,6 +189,7 @@ class Handler(webapp2.RequestHandler):
         
 class MainPage(Handler):
     def render_mainpage(self):
+
         Inventory = db.GqlQuery("SELECT * FROM Inventory")
         names = db.GqlQuery("SELECT * FROM People")
         catagory = db.GqlQuery("SELECT * FROM Catagory")
@@ -217,58 +222,6 @@ class NewItem(Handler):
             self.render("emptymatchresults.html") #needs to contain data
         else: 
             self.render("pageofresults.html") #needs to contain data
-        
-
-
-
-        # if found:
-        #     newitem = Inventory(ItemName = ItemName, catagory = catagory, phone = phone, location = ItemLocation, isNeed = isNeed, isCompleted = False, ItemDescription =ItemDescription, canTransfer = canTransfer)
-        #     newitem.put()
-        #     people[newitem.key] = newitem
-
-
-        # if isNeed:
-        #     print("here")
-        #     needs = db.GqlQuery("SELECT * FROM Inventory")
-        #     for need in needs:
-        #         print(need.catagory)
-        #         if need.isNeed:
-        #             if need.catagory == catagory:
-        #                 if not need.isCompleted:    
-        #                     newitem = Inventory(ItemName = need.ItemName, catagory = need.catagory, phone = need.phone, location = need.location, isNeed = need.isNeed, isCompleted = need.isCompleted, ItemDescription = need.ItemDescription, canTransfer = need.canTransfer)
-        #                     matches[need.ItemName] = newitem
-        #                     print(matches)
-        #                     string = "1 Someone needs what you have. His name is %s. His number is %s"
-        #                     #self.sendmessage(int(str(need.phone)), string)
-        #                     print((string)% (need.ItemName, need.phone))
-        #                     string = "2 Someone has what you need. His name is %s. His number is %s"
-        #                     #self.sendmessage(int(phone), string)
-        #                     print((string)% (need.ItemName, int(phone)))
-        #                     found = True            
-        # else:
-        #     print("there")
-        #     needs = db.GqlQuery("SELECT * FROM Inventory")
-        #     for need in needs:
-        #         if need.isNeed:
-        #             print(need.phone)
-        #             if need.catagory == catagory:
-        #                 if not need.isCompleted:
-        #                     newitem = Inventory(ItemName = need.ItemName, catagory = need.catagory, phone = need.phone, location = need.location, isNeed = need.isNeed, isCompleted = need.isCompleted, ItemDescription = need.ItemDescription, canTransfer = need.canTransfer)
-        #                     matches[need.ItemName] = newitem
-        #                     print(matches)
-
-
-        #                     string = "3 Someone has what you need. His name is %s. His number is %s" 
-        #                     print((string)% (need.ItemName, need.phone))
-                           
-        #                     #self.sendmessage(int(str(need.phone)), string)% (need.ItemName, need.phone)
-        #                     string = "4 Someone needs what you have. His name is %s. His number is %s"
-        #                     #self.sendmessage(int(phone), string)
-        #                     print((string)% (need.ItemName, int(phone)))
-        #                     found = True
-        #sort by location
-      
-
 
     def findMatches(self, isNeed):
         needs = db.GqlQuery("SELECT * FROM Inventory")
@@ -293,6 +246,7 @@ class NewItem(Handler):
 
 class LoginItem(Handler):
     def get(self, phone_error=""):
+        session = get_current_session()
         self.render("login.html",phone_error = phone_error)
 
     def post(self, phone_error=""):
@@ -302,7 +256,7 @@ class LoginItem(Handler):
         if phone_error == "":
             phone_error = self.confirm_verify_phone(phone)
             if phone_error == "":
-                self.setcookie(phone)
+                session['phone'] = phone
                 self.redirect("/")
         self.render("login.html", phone_error = phone_error)
 
@@ -314,9 +268,10 @@ class AddToDataBase(Handler):
         self.render("login.html", phone_error = phone_error)
 
 
-
 class SignUp(Handler):
     def get(self,username="",name_error="", password = "", password_error = "", phone="",phone_error=""):
+        session = get_current_session()
+
         self.render("signup.html", username = username, password = password, password_error = password_error, name_error = name_error, phone = phone, phone_error = phone_error)
 
     def post(self, username="",name_error="",phone="",password = "", password_error = "", phone_error=""): 
@@ -328,13 +283,15 @@ class SignUp(Handler):
         if phone_error == "":
             name_error = self.confirm_verify_username(self.request.get('username'),phone) #################
         if  name_error =="" and phone_error=="" and password_error == "":
-            self.success(self.request.get('username'), phone, password)
+            self.success(self.request.get('username'), phone, password,session)
         else:
             self.render("signup.html", username = username, name_error = name_error, phone = phone, phone_error = phone_error)
 
-    def success(self, username, phone,password):
-        self.setcookie(self.make_hash(username, phone,password))
-        newuser = People(name = username, password = password, phone = self.cleanPhone(phone))
+    def success(self, username, phone,password,session):
+        userhash = self.make_hash(username, phone,password)
+        session['user'] = userhash
+        session['phone'] = phone
+        newuser = People(name = username, password = password, userhash= userhash, phone = self.cleanPhone(phone))
         newuser.put()
         self.redirect("/")
 
