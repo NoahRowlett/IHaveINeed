@@ -245,8 +245,12 @@ class NewItem(Handler):
 
 class LoginItem(Handler):
     def get(self, phone_error=""):
+<<<<<<< HEAD
         
     
+=======
+        session = get_current_session()
+>>>>>>> parent of cc0e5ca... stuff on stuff
         self.render("login.html",phone_error = phone_error)
 
     def post(self, phone_error=""):
