@@ -27,9 +27,9 @@ import urllib2
 import string
 import packages
 import geopy
-#import appengine_utilities
-#import pycrypto
-from gaesessions import SessionMiddleware
+# import appengine_utilities
+# import pycrypto
+
 from gaesessions import get_current_session
 
 
@@ -37,8 +37,7 @@ from gaesessions import get_current_session
 # from geopy import geocoders
 from google.appengine.ext import db
 
-print("here")
-print(os.urandom(64).encode('hex'))
+
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates/')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape=True)
@@ -189,13 +188,13 @@ class Handler(webapp2.RequestHandler):
         
 class MainPage(Handler):
     def render_mainpage(self):
-
         Inventory = db.GqlQuery("SELECT * FROM Inventory")
         names = db.GqlQuery("SELECT * FROM People")
         catagory = db.GqlQuery("SELECT * FROM Catagory")
         self.render("main.html", items = Inventory, names = names)
 
     def get(self):
+        # session = get_current_session
         self.render_mainpage()
 
 class NewItem(Handler):
@@ -217,7 +216,7 @@ class NewItem(Handler):
         catagory = self.request.get("catagory")
         phone = self.getUser() #needs proper encryption
         matches = self.findMatches(isNeed) #needs to be more efficient
-        matches = self.findClosets(matches) #needs to sort by location
+        matches = self.closest(matches) #needs to sort by location
         if len(matches) == 0:
             self.render("emptymatchresults.html") #needs to contain data
         else: 
@@ -240,14 +239,14 @@ class NewItem(Handler):
         else:
             return matchHaves
 
-    def findClosets(self,matches):
+    def closest(self,matches):
         #matches = matches.sort()
         return matches
 
 class LoginItem(Handler):
     def get(self, phone_error=""):
-
-        session = get_current_session()
+        
+    
         self.render("login.html",phone_error = phone_error)
 
     def post(self, phone_error=""):
@@ -257,7 +256,7 @@ class LoginItem(Handler):
         if phone_error == "":
             phone_error = self.confirm_verify_phone(phone)
             if phone_error == "":
-                session['phone'] = phone
+                # session['phone'] = phone
                 self.redirect("/")
         self.render("login.html", phone_error = phone_error)
 
@@ -271,7 +270,8 @@ class AddToDataBase(Handler):
 
 class SignUp(Handler):
     def get(self,username="",name_error="", password = "", password_error = "", phone="",phone_error=""):
-        session = get_current_session()
+
+
 
         self.render("signup.html", username = username, password = password, password_error = password_error, name_error = name_error, phone = phone, phone_error = phone_error)
 
@@ -290,8 +290,8 @@ class SignUp(Handler):
 
     def success(self, username, phone,password,session):
         userhash = self.make_hash(username, phone,password)
-        session['user'] = userhash
-        session['phone'] = phone
+        # session['user'] = userhash
+        # session['phone'] = phone
         newuser = People(name = username, password = password, userhash= userhash, phone = self.cleanPhone(phone))
         newuser.put()
         self.redirect("/")
