@@ -27,17 +27,20 @@ import urllib2
 import string
 import packages
 import geopy
-# import appengine_utilities
-# import pycrypto
+#import appengine_utilities
+#import pycrypto
+from webapp2_extras import sessions
 
-from gaesessions import get_current_session
-
-
+config = {}
+config['webapp2_extras.sessions'] = {
+    'secret_key': 'c4047563e84e0dab8ddfbf78780542e59713396005fa232ec017e5a852eb7d687f28ff4b341f2802a4d597bd1357bdf14d4ba5c344c555b44cf55ed4f36d547c',
+}
 
 # from geopy import geocoders
 from google.appengine.ext import db
 
-
+print("here")
+print(os.urandom(64).encode('hex'))
 
 template_dir = os.path.join(os.path.dirname(__file__), 'templates/')
 jinja_env = jinja2.Environment(loader = jinja2.FileSystemLoader(template_dir), autoescape=True)
@@ -185,25 +188,50 @@ class Handler(webapp2.RequestHandler):
     # return base64.urlsafe_b64encode(encoded_string)
     def getUser(self):
         return int(self.request.cookies.get("phone", "error"))
-        
-class MainPage(Handler):
+ 
+
+class BaseHandler(webapp2.RequestHandler):
+    def dispatch(self):
+        # Get a session store for this request.
+        self.session_store = sessions.get_store(request=self.request)
+
+        try:
+            # Dispatch the request.
+            webapp2.RequestHandler.dispatch(self)
+        finally:
+            # Save all sessions.
+            self.session_store.save_sessions(self.response)
+
+    @webapp2.cached_property
+    def session(self):
+        # Returns a session using the default cookie key.
+        return self.session_store.get_session()
+
+
+class MainPage(BaseHandler, Handler):
     def render_mainpage(self):
+
         Inventory = db.GqlQuery("SELECT * FROM Inventory")
         names = db.GqlQuery("SELECT * FROM People")
         catagory = db.GqlQuery("SELECT * FROM Catagory")
         self.render("main.html", items = Inventory, names = names)
 
     def get(self):
-        # session = get_current_session
+        test_value = self.session.get('phone')
+        if test_value:
+            self.response.write('Session has this value: %r.' % test_value)
+        else:
+            self.session['test-value'] = 'Hello, session world!'
+            self.response.write('Session is empty.')
         self.render_mainpage()
 
-class NewItem(Handler):
+class NewItem(BaseHandler, Handler):
     def render_newpost(self , ItemName ="", ItemDescription = "", ItemLocation = "", error = ""):
-        #get location
         self.render("newform.html", ItemName= ItemName, ItemDescription = ItemDescription, ItemLocation = ItemLocation, error = error)
 
     def get(self):
-        self.validateUser()
+        # self.validateUser()
+
         self.render_newpost()
 
     def post(self):
@@ -216,7 +244,7 @@ class NewItem(Handler):
         catagory = self.request.get("catagory")
         phone = self.getUser() #needs proper encryption
         matches = self.findMatches(isNeed) #needs to be more efficient
-        matches = self.closest(matches) #needs to sort by location
+        matches = self.findClosets(matches) #needs to sort by location
         if len(matches) == 0:
             self.render("emptymatchresults.html") #needs to contain data
         else: 
@@ -239,35 +267,27 @@ class NewItem(Handler):
         else:
             return matchHaves
 
-    def closest(self,matches):
+    def findClosets(self,matches):
         #matches = matches.sort()
         return matches
 
-class LoginItem(Handler):
+class LoginItem(BaseHandler, Handler):
     def get(self, phone_error=""):
-<<<<<<< HEAD
-<<<<<<< HEAD
-        
-    
-=======
-=======
->>>>>>> parent of cc0e5ca... stuff on stuff
-        session = get_current_session()
->>>>>>> parent of cc0e5ca... stuff on stuff
         self.render("login.html",phone_error = phone_error)
 
     def post(self, phone_error=""):
+        
         phone = self.request.get('phone')
         phone_error = self.confirm_phone(self.request.get('phone'))
         phone = re.sub("\D", "", phone)
         if phone_error == "":
             phone_error = self.confirm_verify_phone(phone)
             if phone_error == "":
-                # session['phone'] = phone
+                self.session['phone'] = self.request.get('phone')
                 self.redirect("/")
         self.render("login.html", phone_error = phone_error)
 
-class AddToDataBase(Handler):
+class AddToDataBase(BaseHandler, Handler):
     def get(self, phone_error=""):
         self.render("login.html",phone_error = phone_error)
 
@@ -275,10 +295,9 @@ class AddToDataBase(Handler):
         self.render("login.html", phone_error = phone_error)
 
 
-class SignUp(Handler):
+class SignUp(BaseHandler, Handler):
     def get(self,username="",name_error="", password = "", password_error = "", phone="",phone_error=""):
-
-
+       
 
         self.render("signup.html", username = username, password = password, password_error = password_error, name_error = name_error, phone = phone, phone_error = phone_error)
 
@@ -297,12 +316,17 @@ class SignUp(Handler):
 
     def success(self, username, phone,password,session):
         userhash = self.make_hash(username, phone,password)
-        # session['user'] = userhash
-        # session['phone'] = phone
+        session['user'] = userhash
+        session['phone'] = phone
         newuser = People(name = username, password = password, userhash= userhash, phone = self.cleanPhone(phone))
         newuser.put()
         self.redirect("/")
 
 
-app = webapp2.WSGIApplication([('/', MainPage),('/new/?', NewItem),('/login/?', LoginItem),('/add/?', AddToDataBase),('/signup/?', SignUp)], debug=True)
+app = webapp2.WSGIApplication([('/', MainPage),('/new/?', NewItem),('/login/?', LoginItem),('/add/?', AddToDataBase),('/signup/?', SignUp)], config=config, debug=True)
 
+def main():
+    app.run()
+
+if __name__ == '__main__':
+    main()
