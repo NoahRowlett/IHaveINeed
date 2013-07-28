@@ -273,8 +273,6 @@ class NewItem(BaseHandler, Handler):
 
 class LoginItem(BaseHandler, Handler):
     def get(self, phone_error=""):
-        # session = get_session()
-        
         self.render("login.html",phone_error = phone_error)
 
     def post(self, phone_error=""):
