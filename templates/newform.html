@@ -5,17 +5,18 @@
 			New Post
 		</title>
 	</head>
-
+<div class="container">
+	<div
 	<body>
 		<h1>New Post</h1>
-	<form method = "post">
+	<form  method = "post">
 		<label>
 			<input type="radio" name="isNeed" value="False">I have:<br>
 			<input type="radio" name="isNeed" value="True">I need:
 		</label>
 		<label>
-			<div>Item</div>
-			<input name= "ItemName" type="" value ="{{ItemName}}">
+			<div class="control-label">Item</div>
+			<input name= "ItemName" type="text" value ="{{ItemName}}">
 		</label>
 		<select name="catagory">
 			<optgroup label="Food & Water">
@@ -73,19 +74,22 @@
 		</select>
 		<label>
 			<div>Description</div>
-			<textarea name = "ItemDescription" >{{ItemDescription}}</textarea>
+			<textarea name = "ItemDescription" type="text">{{ItemDescription}}</textarea>
 		</label>
 			<div>Location</div>
-			<input name= "ItemLocation" type="" value =" 38.650884 , -90.293144 {{ItemLocation}}">
+			<input name= "ItemLocation" type="text" value=" 38.650884 , -90.293144 {{ItemLocation}}">
 		</label>
 		
-			<div>Location</div>
+			<div>Can Drive</div>
 			<input type="checkbox" name="canTransfer" value="Bike">I can drive<br>
 		</label>
 
-		<div class ="error">{{error}}</div>
-		<input value = "Post" type="submit">
+		<div class ="error">{{error}}</div> <br>
+		<input class="btn" value = "Post" type="submit">
 	</form>
+<link href="/css/bootstrap.min.css" rel="stylesheet" media="screen" >
+		<link type="text/css" rel="stylesheet" href="/css/bootstrap-responsive.min.css" >
+			<script src="/js/bootstrap.min.js"></script>
 	</body>
 </html>
 

@@ -7,10 +7,10 @@
 		</title>
 		
 	</head>
-	
+	<div class="container">
 	<body>
 		<form method="post" action="/login" value="username">
-			Phone: <input name="phone">{{phone_error}}
+			Phone: <input type="text" name="phone">{{phone_error}}
 			<br>Password: <input type="password" name="password">{{password_error}}
 			<br><input type="Submit">
 				<br>
@@ -19,7 +19,9 @@
 					</form>
 
 				</body>
-
-
+</div>
+<link href="/css/bootstrap.min.css" rel="stylesheet" media="screen" >
+		<link type="text/css" rel="stylesheet" href="/css/bootstrap-responsive.min.css" >
+			<script src="/js/bootstrap.min.js"></script>
 
 			</html>

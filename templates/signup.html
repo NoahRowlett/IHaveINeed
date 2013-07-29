@@ -7,21 +7,25 @@
 		</title>
 		
 	</head>
+	<div class="container">
 	<body onload="getLocation()">
 		<p id="cord">  </p>
 		<form method="post" action="/signup" value="username">
-    Name: <input name = "username" value="test"> {{name_error}}
+    Name: <input name = "username" class="input-small" type="text" value="test"> {{name_error}}
     <br>
-    Password: <input name = "password" input type="password"> {{password_error}}
+    Password: <input name = "password" class="input-small" input type="password"> {{password_error}}
     <br>
-    Verify: <input name = "verify" input type="password">
+    Verify: <input name = "verify" class="input-small" input type="password">
     <br>
-    Phone: <input name = "phone" value="{{phone}}">  {{phone_error}}<br>
+    Phone: <input name = "phone" class="input-small" type="text" value="{{phone}}">  {{phone_error}}<br>
 
-    <br><input type="Submit">
+    <br><input class="btn" type="Submit">
 </form>
-		
+		</div>
 	</body>
+<link href="/css/bootstrap.min.css" rel="stylesheet" media="screen" >
+		<link type="text/css" rel="stylesheet" href="/css/bootstrap-responsive.min.css" >
+			<script src="/js/bootstrap.min.js"></script>
 
 
 

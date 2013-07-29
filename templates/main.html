@@ -1,20 +1,33 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>
+			New Post
+		</title>
+	</head>
 
-<div>
+	<body>
+		<div>
+			<a href="/new">New</a>
+			<a href="/signup">Signup</a>
+			<a href="/login">Login</a>
+			<a href="/logout">Logout</a>
 
-<a href="/new">New</a>
-<a href="/signup">Signup</a>
-<a href="/login">Login</a>
-<a href="/logout">Logout</a>
+			{% for item in items %}
+			<div class = "item">
+				<div class = "post-title"> 
+					<a href="/{{item.key().id()}}"><h2>{{item.ItemName}}<h2></a></div>
+					<img src="http://maps.google.com/maps/api/staticmap?center={{item.location}}&zoom=8&size=400x300&sensor=false" style="width: 400px; height: 400px;" /> 
+					<pre class ="description"> {{item.ItemDescription}}</pre>
 
-{% for item in items %}
-	<div class = "item">
-		<div class = "post-title"> 
-		<a href="/{{item.key().id()}}"><h2>{{item.ItemName}}<h2></a></div>
-	 	<img src="http://maps.google.com/maps/api/staticmap?center={{item.location}}&zoom=8&size=400x300&sensor=false" style="width: 400px; height: 400px;" /> 
-		<pre class ="description"> {{item.ItemDescription}}</pre>
-		
-		<hr>
-	</div>
-{% endfor %}
-</div>
-
+					<hr>
+					</div>
+					{% endfor %}
+				</div>
+			</div>
+		</div>
+	</body>
+	<link href="/css/bootstrap.min.css" rel="stylesheet" media="screen" >
+		<link type="text/css" rel="stylesheet" href="/css/bootstrap-responsive.min.css" >
+			<script src="/js/bootstrap.min.js"></script>
+		</html>

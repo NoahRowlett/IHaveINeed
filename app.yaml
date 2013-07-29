@@ -5,24 +5,15 @@ api_version: 1
 threadsafe: yes
 
 handlers:
-- url: /favicon\.ico
-  static_files: favicon.ico
-  upload: favicon\.ico
-  
-- url: /bootstrap/css
-  mime_type: text/css
-  static_dir: static/bootstrap/css
-
-- url: /bootstrap/js
-  mime_type: text/javascript
-  static_dir: static/bootstrap/static/js
-  
 - url: /css
   static_dir: static/css
 
-
+- url: /js
+  mime_type: text/javascript
+  static_dir: static/js
 - url: .*
   script: main.app
+
 
 libraries:
 - name: webapp2
